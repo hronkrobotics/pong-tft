@@ -29,7 +29,7 @@ struct Game {
   uint8_t scoreR;
   uint8_t winner;  // 1 left, 2 right, 0 while the match is open
   int8_t serveDir;  // -1 travels toward the left paddle
-  uint32_t pauseStart;
+  uint32_t pauseStart;  // start of the point pause, or of the winner screen
 };
 
 void gameInit(Game& game);

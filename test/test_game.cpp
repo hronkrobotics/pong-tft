@@ -161,7 +161,7 @@ static void testRightMiss() {
 }
 
 static void testWinAndRematch() {
-  title("first to 11 wins, and a press starts a fresh match");
+  title("first to 11 wins, the winner screen holds, then a press starts a fresh match");
   Game game;
   gameInit(game);
   game.mode = Mode::Play;
@@ -180,7 +180,14 @@ static void testWinAndRematch() {
   CHECK(game.winner == 1);
   CHECK(game.scoreL == POINTS_TO_WIN);
 
-  event = gameUpdate(game, none(), true, 31000, 16);
+  event = gameUpdate(game, none(), true, 30010, 16);
+  CHECK(event == GameEvent::None);
+  CHECK(game.mode == Mode::GameOver);
+  event = gameUpdate(game, none(), true, 30000 + GAME_OVER_HOLD_MS - 1, 16);
+  CHECK(game.mode == Mode::GameOver);
+  CHECK(game.winner == 1);
+
+  event = gameUpdate(game, none(), true, 30000 + GAME_OVER_HOLD_MS, 16);
   CHECK(event == GameEvent::Serve);
   CHECK(game.mode == Mode::Play);
   CHECK(game.scoreL == 0 && game.scoreR == 0);
@@ -260,6 +267,7 @@ static void testRally() {
     uint8_t scoreL = game.scoreL;
     uint8_t scoreR = game.scoreR;
     if (wasOver) {
+      now += GAME_OVER_HOLD_MS;
       edge = true;
     } else {
       int16_t center = (int16_t)(game.ballY / FP_ONE + BALL_SIZE / 2);

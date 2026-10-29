@@ -111,6 +111,7 @@ static void scorePoint(Game& game, uint8_t scorer, uint32_t nowMs) {
   if (game.scoreL >= POINTS_TO_WIN || game.scoreR >= POINTS_TO_WIN) {
     game.mode = Mode::GameOver;
     game.winner = (game.scoreL >= POINTS_TO_WIN) ? 1 : 2;
+    game.pauseStart = nowMs;
   } else {
     game.mode = Mode::PointPause;
     game.pauseStart = nowMs;
@@ -140,6 +141,10 @@ GameEvent gameUpdate(Game& game, const Buttons& buttons, bool pressEdge,
   movePaddle(game.p1Y, game.p1Sub, buttons.p1Up, buttons.p1Down, dtMs);
   movePaddle(game.p2Y, game.p2Sub, buttons.p2Up, buttons.p2Down, dtMs);
 
+  if (game.mode == Mode::GameOver &&
+      (uint32_t)(nowMs - game.pauseStart) < GAME_OVER_HOLD_MS) {
+    pressEdge = false;
+  }
   if (game.mode == Mode::Title || game.mode == Mode::GameOver) {
     if (pressEdge) {
       beginMatch(game, nowMs);

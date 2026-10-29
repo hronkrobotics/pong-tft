@@ -1,6 +1,6 @@
 # Working on this game
 
-AyanRahman is the collaborator this project is set up for. The GitHub account name is `AyanRahman` (no space). Once the repository is on GitHub, add that account under Settings → Collaborators.
+Aayan Rahman is the collaborator this project is set up for. The GitHub account name is `aayanrahman` (two a's). `AyanRahman` is a different person's account. Once the repository is on GitHub, add that account under Settings → Collaborators.
 
 The sketch has no libraries to install. Physics can be changed and checked on a computer, then flashed to the Nano when the table is on the desk.
 
@@ -17,6 +17,8 @@ The sketch has no libraries to install. Physics can be changed and checked on a 
 | Letter shapes | `tools/make_font.py`, then rerun it |
 
 `config.h` is the file most games of this size want first. `POINTS_TO_WIN`, `PADDLE_H`, `SERVE_SPEED`, `ENGLISH`, and `SPEED_BUMP` are the knobs for how the match feels.
+
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) shows how the files fit together and what happens in one frame.
 
 ## Checks
 

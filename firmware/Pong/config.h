@@ -77,6 +77,9 @@ constexpr int16_t ENGLISH = 5;      // vertical kick from an off-center hit
 
 constexpr uint8_t POINTS_TO_WIN = 11;
 constexpr uint16_t POINT_PAUSE_MS = 700;
+// Buttons are ignored this long after the winning point, so a player still
+// mashing from the last rally does not skip the winner screen.
+constexpr uint16_t GAME_OVER_HOLD_MS = 1000;
 constexpr uint16_t MAX_FRAME_MS = 40;
 constexpr int32_t FP_ONE = 256;
 

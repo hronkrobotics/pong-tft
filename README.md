@@ -4,7 +4,7 @@ Two paddles, one ball, first to 11. The sketch runs on an Arduino Nano clone and
 
 ![Wiring](docs/wiring.svg)
 
-The cyan paddle is the left player. The amber paddle is the right player. The ball speeds up every time a paddle hits it, and an off-center hit sends it up or down. After a point the ball sits in the middle, then serves toward the player who missed. The left player receives the opening serve. Any button starts the next match.
+The cyan paddle is the left player. The amber paddle is the right player. The ball speeds up every time a paddle hits it, and an off-center hit sends it up or down. After a point the ball sits in the middle, then serves toward the player who missed. The left player receives the opening serve. When a match ends, the winner stays on screen for a second, then any button starts the next match.
 
 ## Parts on the bench
 
@@ -99,13 +99,14 @@ firmware/Pong/     sketch: Pong.ino plus the game, the panel, and the buttons
 test/              physics tests
 tools/make_font.py letter pictures; rerun it after an edit
 docs/WIRING.md     bench card
+docs/ARCHITECTURE.md  diagrams of the hardware, the frame loop, and the game rules
 ```
 
 `config.h` is the place to change the winning score, the paddle size, and how fast the ball gets.
 
 ## Collaboration
 
-This project is meant to be built on with AyanRahman. The GitHub account name is `AyanRahman` (Ayan Rahman, no space). After the repository is on GitHub, add that account under Settings → Collaborators so both of you can push. [CONTRIBUTING.md](CONTRIBUTING.md) lists which file owns which part of the game.
+This project is meant to be built on with Aayan Rahman. The GitHub account name is `aayanrahman` (two a's). The similar-looking `AyanRahman` is a different person's account, so do not invite that one. After the repository is on GitHub, add that account under Settings → Collaborators so both of you can push. [CONTRIBUTING.md](CONTRIBUTING.md) lists which file owns which part of the game.
 
 ## License
 
