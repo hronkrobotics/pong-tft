@@ -2,41 +2,52 @@
 
 Two paddles, one ball, first to 11. The sketch runs on an Arduino Nano clone and a 3.5 inch SPI touchscreen. The glass is portrait: one paddle along the bottom, one along the top. Each player has two buttons on a small breadboard.
 
-![Wiring](docs/wiring.svg)
-
 The cyan paddle slides along the bottom. The amber paddle slides along the top. The ball starts in the middle and leaves upward or downward. Its speed stays the same for the whole match. Tap the glass to start, tap again to pause, and tap once more to resume. At 11 the start screen comes back and names the winner.
 
 ## Project status
 
-The rules of the match are checked on a computer with `make test`: serves, bounces, a pause, and a win. The wiring picture is a schematic of the three breadboards. This repo does not include a photo of a finished build.
+The rules of the match are checked on a computer with `make test`: serves, bounces, a pause, and a win. This repo does not include a photo of a finished build.
 
 ## System overview
 
 The Nano reads four buttons and the touchscreen. It draws the table on the TFT over SPI. A tap starts the match, pauses it, and resumes it. The buttons only slide the paddles.
 
+The screen's `VCC` comes from 5 V. The backlight comes from the Nano's 3V3 pin. Six signal wires pass through a resistor pair so the screen sees about 3.4 V. D11 and D13 are shared by the screen and the touch chip. D12 comes back from the touch chip with no pair.
+
 ```mermaid
-flowchart LR
-    BOT["Bottom player<br/>D2 and D3"] --> MCU["Arduino Nano"]
-    TOP["Top player<br/>D4 and D5"] --> MCU
-    MCU -->|"picture over SPI"| TFT["3.5 in touchscreen"]
-    TFT -->|"tap"| MCU
+flowchart TD
+    BOT["Bottom player<br/>D2 and D3"] --> NANO["Arduino Nano"]
+    TOP["Top player<br/>D4 and D5"] --> NANO
+    NANO -->|"5 V VCC, 3.3 V LED"| TFT["3.5 in screen"]
+    NANO -->|"D10 CS, D9 DC, D8 RESET<br/>D11 data, D13 clock, D7 touch select<br/>each through a divider"| TFT
+    TFT -->|"T_DO on D12"| NANO
 ```
 
-The screen's `VCC` comes from 5 V. The backlight comes from the Nano's 3V3 pin. Signal wires from the Nano pass through two resistors so the screen sees about 3.3 V. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) follows the same machine from a tap to a pixel.
+The build is split the same way the wires, the boards, and the program are split.
+
+| Page | What it covers |
+| --- | --- |
+| [Tutorial](docs/TUTORIAL.md) | The build, in order, from power to the first tap |
+| [Bench card](docs/WIRING.md) | Every pin on one page |
+| [Electrical](docs/ELECTRICAL.md) | 5 V into a 3.3 V panel, the divider, and why D11 and D13 are shared |
+| [Hardware](docs/HARDWARE.md) | The three breadboards, and what one row actually is |
+| [Software](docs/ARCHITECTURE.md) | The match, the files, and one frame |
 
 ## Parts
 
 | Item | Notes | How many |
 | --- | --- | --- |
-| Arduino Nano clone | ATmega328P, usually a CH340 USB chip | 1 |
+| Arduino Nano clone | ATmega328P. CH340 clones are common. An FTDI port shows up as "USB Serial Port" | 1 |
 | 3.5 inch SPI TFT | 480×320 module, used here in portrait. ILI9488 on the common MSP3520 board, which has a touch header | 1 |
 | Large breadboard | Holds the Nano and the screen | 1 |
-| Mini breadboard | One player each | 2 |
+| Mini breadboard | One player each. A third strip if the dividers do not fit on the big board | 2 |
 | Tactile buttons | Two per mini breadboard | 4 |
-| 470 ohm resistors | In series on the 5 V signal wires | 6 |
-| 1 k ohm resistors | From those wires down to ground | 6 |
+| 470 ohm resistors | In series on the six signal wires | 6 |
+| 1 k ohm resistors | From those joints down to ground | 6 |
 | Jumper wires | | |
 | USB cable | Has to carry data, not charge only | 1 |
+
+Six 220 ohm resistors and six 470 ohm resistors are the other pair that lands at the same voltage. The smaller one goes in the wire from the Nano. The larger one goes to ground. Both sets are drawn in the [tutorial](docs/TUTORIAL.md).
 
 A piezo from D6 to ground is optional. Set `BUZZER_ENABLED` to `1` in `firmware/Pong/config.h` when it is fitted. A CH340 driver on the computer is needed if the Nano's port never appears.
 
@@ -48,73 +59,11 @@ An MSP3521 module has no touch chip. This game starts and pauses from a tap, so 
 | --- | --- |
 | Computer with the Arduino IDE or PlatformIO | Flashing the sketch |
 | USB data cable | The upload, and the serial monitor |
-| Optional multimeter | Checking 5 V, 3V3, and ground before the screen is wired |
-
-## Board layout
-
-Three breadboards, one shared ground.
-
-**Big breadboard.** The Nano and the screen sit here. The glass hangs off the edge, so seat the header all the way and keep the SCK and MOSI wires short.
-
-**Left mini breadboard, cyan.** The bottom player. Two buttons, left and right.
-
-**Right mini breadboard, amber.** The top player. Two buttons, left and right.
-
-Left and right are as that player looks at their own paddle.
-
-## Wiring
-
-The picture at the top of this page is the whole board in one view. Read it by the numbers.
-
-1. **Middle.** The big breadboard. The white card is the screen, the blue card is the Nano. Each line is one wire: pin on the part, then the Nano pin it goes to.
-2. **Left.** Bottom player. Left button to D2, right button to D3. The other side of each button goes to ground.
-3. **Right.** Top player. Left button to D4, right button to D5. The other side goes to ground.
-4. **Bottom.** Two resistors that drop a 5 V Nano pin to about 3.3 V. Build that pair for `CS`, `RESET`, `DC`, `MOSI`, `SCK`, and `T_CS`.
-
-`T_DO` is already 3.3 V. It goes straight to D12, with no resistors. Leave `T_IRQ` empty. Leave the screen's own `SDO` pin empty. Do not tie `T_CS` to 3V3. The sketch has to drive that pin, or a tap never arrives.
-
-The `MOSI` resistor pair feeds both the screen and `T_DIN`. The `SCK` pair feeds both the screen and `T_CLK`. `VCC` still comes from 5 V. The backlight (`LED`) still comes from 3V3.
-
-Every pin, the button gap, and the resistor pair are written out on the [bench card](docs/WIRING.md).
-
-| Nano | Goes to |
-| --- | --- |
-| 5V | TFT VCC |
-| GND | TFT GND, and the ground of both mini breadboards |
-| 3V3 | TFT LED |
-| D10 | TFT CS |
-| D9 | TFT DC / RS |
-| D8 | TFT RESET |
-| D11 | TFT SDI / MOSI, and touch `T_DIN` |
-| D13 | TFT SCK, and touch `T_CLK` |
-| D12 | Touch `T_DO` |
-| D7 | Touch `T_CS` |
-| D2, D3 | Bottom player's left and right |
-| D4, D5 | Top player's left and right |
-
-Some of these red boards have a solder jumper marked `J1` on the back. Bridging `J1` and powering `VCC` from 5 V lets the signal wires go straight across. The module maker says that path runs warm and ages the panel. The resistors are the wiring to leave in place.
-
-## Build it
-
-1. Seat the Nano and the screen header on the big breadboard. The glass hangs off the side. Prop it so the header stays in the holes.
-2. Run 5 V to the screen `VCC`, 3V3 to `LED`, and ground to the screen and to both small breadboards.
-3. Build the six resistor pairs. Connect `CS`, `RESET`, `DC`, `MOSI`, `SCK`, and `T_CS` through them. From the `MOSI` joint, also jump to `T_DIN`. From the `SCK` joint, also jump to `T_CLK`.
-4. Run `T_DO` straight to D12. Leave `T_IRQ` and the screen's `SDO` empty.
-5. Seat each button across the center gap of its mini breadboard. One side of the gap goes to the Nano pin. The other side goes to ground.
-6. Flash the sketch, open the serial monitor, press each button, then tap the glass.
-
-```mermaid
-flowchart TD
-    S1["Seat the Nano and the screen"] --> S2["5 V, 3V3, and a shared ground"]
-    S2 --> S3["Six resistor pairs on the signal wires"]
-    S3 --> S4["T_DO straight to D12"]
-    S4 --> S5["Four buttons to ground"]
-    S5 --> S6["Flash, press each button, tap the glass"]
-```
+| Optional multimeter | Checking 5 V, 3V3, and ground before the signal wires go on |
 
 ## Firmware
 
-Open `firmware/Pong/Pong.ino` in the Arduino IDE. The other files in that folder open as tabs. There are no libraries to install.
+Open `firmware/Pong/Pong.ino` in the Arduino IDE. The other files in that folder open as tabs. There are no libraries to install. The upload steps and the serial check are in the [tutorial](docs/TUTORIAL.md).
 
 | Setting | Value |
 | --- | --- |
@@ -122,8 +71,6 @@ Open `firmware/Pong/Pong.ino` in the Arduino IDE. The other files in that folder
 | Processor | ATmega328P (Old Bootloader) |
 | If upload says `stk500_getsync` | Switch Processor to ATmega328P and try again |
 | Serial monitor | 115200 baud |
-
-The monitor prints the pin list, then `Ready. Tap the screen to start.` Press each button and look for `button: bottom left`, `bottom right`, `top left`, and `top right`. A tap prints `touch: tap`.
 
 The match has four steps. The start screen waits for a tap. Play moves the ball. Between points the ball sits still for a moment, then serves on its own. Pause freezes whichever of those two you were in.
 
@@ -140,20 +87,9 @@ stateDiagram-v2
     Play --> Start: score reaches 11
 ```
 
-Buttons do not start or pause the game. They slide a paddle left and right. If a paddle moves the wrong way, swap that player's two pin numbers in `config.h`. If the whole picture is upside down, set `ROTATION` to `2`.
+Buttons do not start or pause the game. They slide a paddle left and right.
 
-The ball leaves the middle toward the top or the bottom. An off-center hit angles it sideways. The speed does not increase. At 11 the start screen returns with `BOTTOM WINS` or `TOP WINS`, and a tap starts a new match at 0–0.
-
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) is the longer version: every file, one frame from start to finish, and how the picture is drawn without storing it.
-
-| What you see | What to change in `config.h` |
-| --- | --- |
-| White backlight, blank picture | Confirm the resistor pairs, then try `TFT_DRIVER` `9486` if the silkscreen says ILI9486 |
-| Backlight off | `LED` on the Nano's 3V3 pin |
-| Red and blue swapped | `TFT_USE_BGR` |
-| Colors look like a negative | `TFT_INVERT` |
-| Picture mirrored | `TFT_MIRROR` |
-| Speckles or a flickering image | Shorter SCK and MOSI wires, and `SPI_HZ` at `2000000` |
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) is the software page: every file, one frame from start to finish, and how the picture is drawn without storing it.
 
 ### On the computer
 
@@ -182,7 +118,10 @@ The ILI9488 build uses 10,734 bytes of flash (34% of 30,720) and 396 bytes of RA
 firmware/Pong/       sketch: Pong.ino, config.h, game, render, display, input, touch
 test/                match tests that run on a computer
 tools/make_font.py   letter pictures; rerun it after an edit
+docs/TUTORIAL.md     build order
 docs/WIRING.md       bench card for every pin
+docs/ELECTRICAL.md   voltages and the shared SPI wires
+docs/HARDWARE.md     breadboards and one row
 docs/ARCHITECTURE.md the match, the files, and one frame
 ```
 
@@ -196,7 +135,7 @@ docs/ARCHITECTURE.md the match, the files, and one frame
 - The ball does not speed up. That was left out on purpose.
 - There is no click unless a piezo is on D6 and `BUZZER_ENABLED` is `1`.
 - The Nano has 2048 bytes of RAM. The picture lives on the screen, and the sketch repairs the spots that moved.
-- The wiring picture is a schematic. It is not a photo of a built board.
+- There is no photo of a built board.
 - A module with no touch header cannot start or pause this sketch.
 
 ## Later
@@ -207,14 +146,13 @@ docs/ARCHITECTURE.md the match, the files, and one frame
 
 ## References
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the state machine and the drawing path
+- [docs/TUTORIAL.md](docs/TUTORIAL.md) for the build
 - [docs/WIRING.md](docs/WIRING.md) for every pin
+- [docs/ELECTRICAL.md](docs/ELECTRICAL.md) for the dividers and the shared wires
+- [docs/HARDWARE.md](docs/HARDWARE.md) for the breadboards
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the state machine and the drawing path
 - ILI9488 and ILI9486 bring-up, and the XPT2046 touch chip on the same header
-- The docs in this repo follow the same outline as [solareyes](https://github.com/hronkrobotics/solareyes)
-
-## 5 V and the screen
-
-The screen's signal pins are 3.3 V. A Nano pin drives about 5 V. Use the resistor pair on `CS`, `RESET`, `DC`, `MOSI`, `SCK`, and `T_CS`. `VCC` may come from 5 V. Power the backlight from the 3V3 pin, not from 5 V.
+- The docs follow the split used in [robotictentacle](https://github.com/hronkrobotics/robotictentacle), and the mermaid maps used in [solareyes](https://github.com/hronkrobotics/solareyes)
 
 ## License
 

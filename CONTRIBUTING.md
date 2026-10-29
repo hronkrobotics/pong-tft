@@ -1,6 +1,6 @@
 # Working on this game
 
-The rules can be changed and checked on a computer, then flashed to the Nano when the breadboards are on the desk. The README and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) follow the same outline as [solareyes](https://github.com/hronkrobotics/solareyes): a short system picture in the README, then one architecture page for the state machine, the files, and a single frame.
+The rules can be changed and checked on a computer, then flashed to the Nano when the breadboards are on the desk. The README is the overview. [docs/ELECTRICAL.md](docs/ELECTRICAL.md), [docs/HARDWARE.md](docs/HARDWARE.md), and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) split the wires, the boards, and the program. [docs/TUTORIAL.md](docs/TUTORIAL.md) is the build. The mermaid maps follow [solareyes](https://github.com/hronkrobotics/solareyes). The split follows [robotictentacle](https://github.com/hronkrobotics/robotictentacle).
 
 AyanRahman is the collaborator this project is set up for. The GitHub account name is `AyanRahman` (no space). Add that account under Settings → Collaborators.
 
@@ -17,7 +17,10 @@ AyanRahman is the collaborator this project is set up for. The GitHub account na
 | Boot and the frame loop | `firmware/Pong/Pong.ino` |
 | Beeps and the serial score line | `firmware/Pong/feedback.cpp` |
 | Letter shapes | `tools/make_font.py`, then rerun it |
-| The wiring picture | `docs/wiring.svg` and `docs/WIRING.md` |
+| The pin table | `docs/WIRING.md` |
+| Voltages, dividers, shared SPI | `docs/ELECTRICAL.md` |
+| Breadboards and one row | `docs/HARDWARE.md` |
+| The build order | `docs/TUTORIAL.md` |
 | How the program is explained | `docs/ARCHITECTURE.md` |
 
 `game.cpp` has no Arduino code in it, so it builds and runs on a laptop. Keep it that way. Pins, SPI, and serial belong in the other files.
