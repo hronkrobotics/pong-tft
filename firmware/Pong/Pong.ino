@@ -1,5 +1,5 @@
 // Two-player Pong for an Arduino Nano clone and a 3.5 inch SPI TFT.
-// The glass is portrait: cyan paddle on the bottom, amber paddle on the top.
+// The glass is portrait: blue paddle on the bottom, green paddle on the top.
 // Open this folder in the Arduino IDE. Wiring is in docs/WIRING.md.
 // Pins, winning score, and ball speed live in config.h.
 

@@ -4,8 +4,8 @@ Three breadboards and one shared ground. This page is how the parts sit. The vol
 
 ```mermaid
 flowchart LR
-    BOT["Small board<br/>bottom player, cyan<br/>D2 and D3"] --> BIG["Big board<br/>Nano and screen"]
-    TOP["Small board<br/>top player, amber<br/>D4 and D5"] --> BIG
+    BOT["Small board<br/>bottom player, blue<br/>D2 and D3"] --> BIG["Big board<br/>Nano and screen"]
+    TOP["Small board<br/>top player, green<br/>D4 and D5"] --> BIG
     DIV["Divider rows<br/>on the big board, or their own strip"] --> BIG
 ```
 
@@ -40,6 +40,6 @@ If a resistor leg cannot reach from the Nano's row to the screen's row, put the 
 
 Each small breadboard is one player. Two buttons. Seat each button so it straddles the center gap of that board. The legs on one side of the gap are already connected inside the switch. One side of the gap goes to the Nano pin. The other side goes to ground.
 
-Left and right are as that player looks at their own paddle. The bottom player is the cyan paddle. The top player is the amber paddle.
+Left and right are as that player looks at their own paddle. The bottom player is the blue paddle. The top player is the green paddle.
 
 Run one ground wire from each small board back to the ground rail on the big board.
