@@ -45,7 +45,7 @@ constexpr uint8_t PIN_MISO = 12;
 // written. T_CLK shares SCK, T_DIN shares MOSI, T_DO goes to MISO.
 constexpr uint8_t PIN_T_CS = 7;
 
-// Bottom mini breadboard is the cyan paddle. Top mini breadboard is amber.
+// Bottom mini breadboard is the blue paddle. Top mini breadboard is green.
 // Left and right are along the glass, the way each player sees their paddle.
 constexpr uint8_t PIN_BOT_LEFT = 2;
 constexpr uint8_t PIN_BOT_RIGHT = 3;
@@ -95,8 +95,8 @@ constexpr int32_t FP_ONE = 256;
 
 constexpr uint16_t COL_BG = 0x0000;
 constexpr uint16_t COL_NET = 0x3186;
-constexpr uint16_t COL_P1 = 0x07FF;
-constexpr uint16_t COL_P2 = 0xFBE0;
+constexpr uint16_t COL_P1 = 0x001F;
+constexpr uint16_t COL_P2 = 0x07E0;
 constexpr uint16_t COL_BALL = 0xFFFF;
 constexpr uint16_t COL_TITLE = 0xFFFF;
 constexpr uint16_t COL_SUB = 0xBDF7;

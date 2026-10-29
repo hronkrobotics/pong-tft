@@ -12,8 +12,8 @@ Three breadboards. The big one holds the Nano and the screen. Each small one hol
 flowchart TB
     subgraph Players["Two small breadboards"]
         direction LR
-        BOT["Bottom player, cyan<br/>D2 left, D3 right"]
-        TOP["Top player, amber<br/>D4 left, D5 right"]
+        BOT["Bottom player, blue<br/>D2 left, D3 right"]
+        TOP["Top player, green<br/>D4 left, D5 right"]
     end
 
     subgraph Big["Big breadboard"]
@@ -206,7 +206,7 @@ flowchart TD
     H -->|no| J["Leave the table as it is"]
 ```
 
-The dashed line is horizontal, across the middle of the gap. The bottom paddle is cyan. The top paddle is amber. The bottom player's score sits just above the bottom paddle. The top player's score sits just under the top paddle.
+The dashed line is horizontal, across the middle of the gap. The bottom paddle is blue. The top paddle is green. The bottom player's score sits just above the bottom paddle. The top player's score sits just under the top paddle.
 
 ## What the Nano can hold
 

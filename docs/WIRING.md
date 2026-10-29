@@ -70,10 +70,10 @@ One side of the button goes to the Nano pin. The other side goes to ground. No r
 
 | Player | Action | Nano |
 | --- | --- | --- |
-| Bottom (cyan) | Left | D2 |
-| Bottom (cyan) | Right | D3 |
-| Top (amber) | Left | D4 |
-| Top (amber) | Right | D5 |
+| Bottom (blue) | Left | D2 |
+| Bottom (blue) | Right | D3 |
+| Top (green) | Left | D4 |
+| Top (green) | Right | D5 |
 
 Left and right are as that player looks at their own paddle. If a paddle slides the wrong way, swap that player's two pin numbers in `config.h`.
 

@@ -16,7 +16,7 @@ flowchart TD
 
 Put the Nano and the screen header on the big breadboard. The glass hangs off the side. Prop it so the pins stay in the holes.
 
-The two small breadboards are the players. Bottom player on the left, cyan paddle, D2 and D3. Top player on the right, amber paddle, D4 and D5.
+The two small breadboards are the players. Bottom player on the left, blue paddle, D2 and D3. Top player on the right, green paddle, D4 and D5.
 
 If the big board has no free rows left for resistors, keep a spare strip for the six dividers. The resistors live on that strip. Jumper wires go out to the Nano and the screen.
 
@@ -101,8 +101,8 @@ Seat each button across the center gap of its small breadboard. One side of the 
 
 | Player | Left | Right |
 | --- | --- | --- |
-| Bottom, cyan | D2 | D3 |
-| Top, amber | D4 | D5 |
+| Bottom, blue | D2 | D3 |
+| Top, green | D4 | D5 |
 
 Left and right are as that player looks at their own paddle.
 
