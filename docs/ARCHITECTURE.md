@@ -1,6 +1,6 @@
 # How this Pong game works
 
-This page follows one match from a finger on the glass to a pixel on the screen. The breadboards and the wires are in the [README](../README.md) and on the [bench card](WIRING.md). Which file to edit is in [CONTRIBUTING.md](../CONTRIBUTING.md).
+This page is the software. It follows one match from a finger on the glass to a pixel on the screen. Voltages are in [ELECTRICAL.md](ELECTRICAL.md). The boards are in [HARDWARE.md](HARDWARE.md). The pin table is the [bench card](WIRING.md). The build order is the [tutorial](TUTORIAL.md). Which file to edit is in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 The diagrams are maps. A box is a part or a file. An arrow means a wire, or "this step comes next." Each diagram has a short reading of the same idea in sentences, so you can skip the picture and still follow the program.
 
@@ -46,7 +46,7 @@ flowchart TB
 
 Start at the Nano in the middle. Buttons come in from the two players. The Nano sends the picture out on the SPI wires, and the touch chip sends a tap back on D12. The four files under the Nano are the program: the loop, the rules, the drawing, and the screen driver.
 
-Power is not on this map. The screen's `VCC` comes from 5 V, the backlight comes from the Nano's 3V3 pin, and every board shares ground. Signal wires that leave a Nano pin go through the resistor pair in region 4 of the wiring picture, because those pins are 5 V and the screen wants 3.3 V.
+Power is not on this map. The screen's `VCC` comes from 5 V, the backlight comes from the Nano's 3V3 pin, and every board shares ground. Signal wires that leave a Nano pin go through the resistor pair in [ELECTRICAL.md](ELECTRICAL.md), because those pins are 5 V and the screen wants 3.3 V.
 
 ## The sketch, file by file
 
