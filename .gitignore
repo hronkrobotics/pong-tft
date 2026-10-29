@@ -1,0 +1,8 @@
+.pio/
+.vscode/
+build/
+*.elf
+*.hex
+*.eep
+test/test_game
+.DS_Store
