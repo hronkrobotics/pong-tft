@@ -4,4 +4,3 @@
 
 void inputBegin();
 Buttons inputRead();
-bool inputConsumePress();
