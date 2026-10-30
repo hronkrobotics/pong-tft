@@ -161,7 +161,7 @@ The names in the code are `Title`, `Play`, `PointPause`, and `Paused`.
 ```mermaid
 stateDiagram-v2
     [*] --> Title: power on
-    Title --> Play: tap, serve up or down
+    Title --> Play: tap, serve up or down, after 1 s when a winner is showing
     Play --> Paused: tap
     PointPause --> Paused: tap
     Paused --> Play: tap, the rally was running
@@ -181,7 +181,7 @@ The ball:
 - The vertical speed stays at `SERVE_SPEED` for the whole match. Paddle hits do not speed the ball up.
 - Where the ball meets the paddle sets the sideways speed. The middle sends it straight. Toward an end, it angles off, up to `MAX_VX`.
 - The left and right edges of the glass bounce it back. The top and bottom are the goals. Past the top paddle, the bottom player scores. Past the bottom paddle, the top player scores.
-- At 11 the match returns to the title screen, the winner is named, and the score stays on screen until the next tap. That tap starts a new match at 0–0.
+- At 11 the match returns to the title screen, the winner is named, and the score stays on screen. A tap in the first second is ignored. The next tap after that starts a new match at 0–0.
 
 ## From the rules to the glass
 

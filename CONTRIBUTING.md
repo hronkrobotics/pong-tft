@@ -2,7 +2,7 @@
 
 The rules can be changed and checked on a computer, then flashed to the Nano when the breadboards are on the desk. The README is the overview. [docs/ELECTRICAL.md](docs/ELECTRICAL.md), [docs/HARDWARE.md](docs/HARDWARE.md), and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) split the wires, the boards, and the program. [docs/TUTORIAL.md](docs/TUTORIAL.md) is the build. The mermaid maps follow [solareyes](https://github.com/hronkrobotics/solareyes). The split follows [robotictentacle](https://github.com/hronkrobotics/robotictentacle).
 
-AyanRahman is the collaborator this project is set up for. The GitHub account name is `AyanRahman` (no space). Add that account under Settings → Collaborators.
+Aayan Rahman is the collaborator this project is set up for. The GitHub account name is `aayanrahman` (two a's). `AyanRahman` is a different person's account. Add `aayanrahman` under Settings → Collaborators.
 
 ## Where to edit
 
