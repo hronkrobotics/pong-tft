@@ -107,6 +107,7 @@ static GameEvent miss(Game& game, uint8_t scorer, uint32_t nowMs) {
   if (won) {
     game.mode = Mode::Title;
     game.winner = (game.scoreBot >= POINTS_TO_WIN) ? (uint8_t)1 : (uint8_t)2;
+    game.pauseStart = nowMs;
     return GameEvent::Win;
   }
   game.mode = Mode::PointPause;
@@ -139,8 +140,12 @@ GameEvent gameUpdate(Game& game, const Buttons& buttons, bool tapEdge,
   // A tap starts a match, pauses play, or resumes. The finger's frame does
   // not also move the ball, so a pause lands on the picture the player saw.
   if (tapEdge && game.mode == Mode::Title) {
-    beginMatch(game, nowMs);
-    return GameEvent::Serve;
+    bool winnerHolding = game.winner != 0 &&
+                         (uint32_t)(nowMs - game.pauseStart) < GAME_OVER_HOLD_MS;
+    if (!winnerHolding) {
+      beginMatch(game, nowMs);
+      return GameEvent::Serve;
+    }
   }
   if (tapEdge && (game.mode == Mode::Play || game.mode == Mode::PointPause)) {
     game.pausedFrom = game.mode;

@@ -38,7 +38,7 @@ struct Game {
   uint8_t scoreTop;
   uint8_t winner;  // 1 bottom, 2 top, 0 while the match is open
   int8_t serveDir;  // -1 travels up, +1 travels down
-  uint32_t pauseStart;
+  uint32_t pauseStart;  // point pause, or the moment the winner screen appeared
   Mode pausedFrom;
   uint32_t holdStart;
 };

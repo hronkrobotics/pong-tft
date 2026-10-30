@@ -90,6 +90,9 @@ constexpr int16_t ENGLISH = 4;         // sideways speed per pixel off the paddl
 
 constexpr uint8_t POINTS_TO_WIN = 11;
 constexpr uint16_t POINT_PAUSE_MS = 700;
+// A tap in this window after the winning point is ignored, so a finger still
+// on the glass does not skip the winner's name.
+constexpr uint16_t GAME_OVER_HOLD_MS = 1000;
 constexpr uint16_t MAX_FRAME_MS = 40;
 constexpr int32_t FP_ONE = 256;
 

@@ -287,7 +287,15 @@ static void testWinReturnsToTitle() {
   CHECK(game.mode == Mode::Title);
   CHECK(game.scoreBot == POINTS_TO_WIN);
 
-  event = gameUpdate(game, none(), true, 31000, 16);
+  event = gameUpdate(game, none(), true, 30010, 16);
+  CHECK(event == GameEvent::None);
+  CHECK(game.mode == Mode::Title);
+  CHECK(game.winner == 1);
+  event = gameUpdate(game, none(), true, 30000 + GAME_OVER_HOLD_MS - 1, 16);
+  CHECK(game.mode == Mode::Title);
+  CHECK(game.winner == 1);
+
+  event = gameUpdate(game, none(), true, 30000 + GAME_OVER_HOLD_MS, 16);
   CHECK(event == GameEvent::Serve);
   CHECK(game.mode == Mode::Play);
   CHECK(game.scoreBot == 0 && game.scoreTop == 0);
@@ -382,6 +390,7 @@ static void testRally() {
     uint8_t scoreBot = game.scoreBot;
     uint8_t scoreTop = game.scoreTop;
     if (wasTitle) {
+      now += GAME_OVER_HOLD_MS;
       tap = true;
     } else if (game.mode == Mode::Play || game.mode == Mode::PointPause) {
       int16_t center = (int16_t)(game.ballX / FP_ONE + BALL_SIZE / 2);

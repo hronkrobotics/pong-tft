@@ -2,7 +2,7 @@
 
 Two paddles, one ball, first to 11. The sketch runs on an Arduino Nano clone and a 3.5 inch SPI touchscreen. The glass is portrait: one paddle along the bottom, one along the top. Each player has two buttons on a small breadboard.
 
-The blue paddle slides along the bottom. The green paddle slides along the top. The ball starts in the middle and leaves upward or downward. Its speed stays the same for the whole match. Tap the glass to start, tap again to pause, and tap once more to resume. At 11 the start screen comes back and names the winner.
+The blue paddle slides along the bottom. The green paddle slides along the top. The ball starts in the middle and leaves upward or downward. Its speed stays the same for the whole match. Tap the glass to start, tap again to pause, and tap once more to resume. At 11 the start screen comes back and names the winner. A tap in that first second does not start the next match.
 
 ## Project status
 
@@ -77,7 +77,7 @@ The match has four steps. The start screen waits for a tap. Play moves the ball.
 ```mermaid
 stateDiagram-v2
     [*] --> Start
-    Start --> Play: tap
+    Start --> Play: tap, after 1 s when a winner is showing
     Play --> Paused: tap
     Between --> Paused: tap
     Paused --> Play: tap, back to the rally
