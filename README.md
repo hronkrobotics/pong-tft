@@ -1,64 +1,107 @@
 # Pong on a 3.5 inch SPI TFT
 
-Two paddles, one ball, first to 11. The sketch runs on an Arduino Nano clone and a 480×320 SPI TFT, with each player on their own mini breadboard.
+Two paddles, one ball, first to 11. The sketch runs on an Arduino Nano clone and a 3.5 inch SPI touchscreen. The glass is portrait: one paddle along the bottom, one along the top. Each player has two buttons on a small breadboard.
 
-![Wiring](docs/wiring.svg)
+The blue paddle slides along the bottom. The green paddle slides along the top. The ball starts in the middle and leaves upward or downward. Its speed stays the same for the whole match. Tap the glass to start, tap again to pause, and tap once more to resume. At 11 the start screen comes back and names the winner. A tap in that first second does not start the next match.
 
-The cyan paddle is the left player. The amber paddle is the right player. The ball speeds up every time a paddle hits it, and an off-center hit sends it up or down. After a point the ball sits in the middle, then serves toward the player who missed. The left player receives the opening serve. When a match ends, the winner stays on screen for a second, then any button starts the next match.
+## Project status
 
-## Parts on the bench
+The rules of the match are checked on a computer with `make test`: serves, bounces, a pause, and a win. This repo does not include a photo of a finished build.
 
-- Arduino Nano clone (ATmega328P, usually a CH340 USB chip)
-- 3.5 inch SPI TFT, 480×320. The common red module is an ILI9488 (MSP3520 with touch, MSP3521 without)
-- One large breadboard for the Nano and the display
-- Two mini breadboards, two tactile buttons on each
-- Jumper wires
-- A USB cable that carries data
+## System overview
 
-Worth having before the board stays powered for a long session:
+The Nano reads four buttons and the touchscreen. It draws the table on the TFT over SPI. A tap starts the match, pauses it, and resumes it. The buttons only slide the paddles.
 
-- Five 470 ohm resistors and five 1 k ohm resistors, for the display's 3.3 V logic pins
-- A CH340 driver on the computer, if the Nano's port never appears
+The screen's `VCC` comes from 5 V. The backlight comes from the Nano's 3V3 pin. Six signal wires pass through a resistor pair so the screen sees about 3.4 V. D11 and D13 are shared by the screen and the touch chip. D12 comes back from the touch chip with no pair.
 
-A piezo from D6 to GND is optional. Set `BUZZER_ENABLED` to `1` in `firmware/Pong/config.h` when it is fitted.
+```mermaid
+flowchart TD
+    BOT["Bottom player<br/>D2 and D3"] --> NANO["Arduino Nano"]
+    TOP["Top player<br/>D4 and D5"] --> NANO
+    NANO -->|"5 V VCC, 3.3 V LED"| TFT["3.5 in screen"]
+    NANO -->|"D10 CS, D9 DC, D8 RESET<br/>D11 data, D13 clock, D7 touch select<br/>each through a divider"| TFT
+    TFT -->|"T_DO on D12"| NANO
+```
 
-## Wire it
+The build is split the same way the wires, the boards, and the program are split.
 
-The full pin list, the button gap, and the resistor divider are on the [bench card](docs/WIRING.md). Short version:
-
-| Nano | Goes to |
+| Page | What it covers |
 | --- | --- |
-| 5V | TFT VCC |
-| GND | TFT GND, and the ground of both mini breadboards |
-| 3V3 | TFT LED, so the backlight stays on |
-| D10 | TFT CS |
-| D9 | TFT DC / RS |
-| D8 | TFT RESET |
-| D11 | TFT SDI / MOSI |
-| D13 | TFT SCK |
-| D2, D3 | Left player's up and down buttons |
-| D4, D5 | Right player's up and down buttons |
+| [Tutorial](docs/TUTORIAL.md) | The build, in order, from power to the first tap |
+| [Bench card](docs/WIRING.md) | Every pin on one page |
+| [Electrical](docs/ELECTRICAL.md) | 5 V into a 3.3 V panel, the divider, and why D11 and D13 are shared |
+| [Hardware](docs/HARDWARE.md) | The three breadboards, and what one row actually is |
+| [Software](docs/ARCHITECTURE.md) | The match, the files, and one frame |
 
-Leave MISO unconnected. Leave the touch pins unconnected, except `T_CS`: if that pin exists, tie it to 3V3 so the touch chip stays idle.
+## Parts
 
-Each button straddles the center gap of its mini breadboard. One side of the gap goes to the Nano pin, the other side to GND. The sketch turns on the internal pull-ups, so the buttons need no resistors of their own.
+| Item | Notes | How many |
+| --- | --- | --- |
+| Arduino Nano clone | ATmega328P. CH340 clones are common. An FTDI port shows up as "USB Serial Port" | 1 |
+| 3.5 inch SPI TFT | 480×320 module, used here in portrait. ILI9488 on the common MSP3520 board, which has a touch header | 1 |
+| Large breadboard | Holds the Nano and the screen | 1 |
+| Mini breadboard | One player each. A third strip if the dividers do not fit on the big board | 2 |
+| Tactile buttons | Two per mini breadboard | 4 |
+| 470 ohm resistors | In series on the six signal wires | 6 |
+| 1 k ohm resistors | From those joints down to ground | 6 |
+| Jumper wires | | |
+| USB cable | Has to carry data, not charge only | 1 |
 
-The TFT logic pins are 3.3 V, and a Nano pin drives about 5 V. On `CS`, `RESET`, `DC`, `MOSI`, and `SCK`, put a 470 ohm resistor in series and a 1 k ohm resistor from the TFT pin down to GND. `VCC` still comes from 5 V, and `LED` still comes from 3V3. Boards that have a `J1` solder jumper on the back can run with straight wires after that jumper is bridged; the module maker says that path runs warm, so the resistors are the one to leave in place.
+Six 220 ohm resistors and six 470 ohm resistors are the other pair that lands at the same voltage. The smaller one goes in the wire from the Nano. The larger one goes to ground. Both sets are drawn in the [tutorial](docs/TUTORIAL.md).
 
-## Flash it
+A piezo from D6 to ground is optional. Set `BUZZER_ENABLED` to `1` in `firmware/Pong/config.h` when it is fitted. A CH340 driver on the computer is needed if the Nano's port never appears.
 
-Open `firmware/Pong/Pong.ino` in the Arduino IDE. The sketch has no libraries to install.
+An MSP3521 module has no touch chip. This game starts and pauses from a tap, so it needs the touch header.
 
-1. Tools → Board → Arduino Nano
-2. Tools → Processor → ATmega328P (Old Bootloader)
-3. Tools → Port → the port that shows up when the Nano is plugged in
-4. Upload
+## Tools
 
-If `avrdude` reports `stk500_getsync`, switch Processor to ATmega328P and upload again. One of those two entries matches the clone.
+| Tool | What you use it for |
+| --- | --- |
+| Computer with the Arduino IDE or PlatformIO | Flashing the sketch |
+| USB data cable | The upload, and the serial monitor |
+| Optional multimeter | Checking 5 V, 3V3, and ground before the signal wires go on |
 
-Then open the serial monitor at **115200** baud. It prints the pin list, `Init display...`, `Clearing screen...`, and `Ready`. Press each button and confirm the four lines `button: left up`, `left down`, `right up`, and `right down`.
+## Firmware
 
-PlatformIO is wired up as well, from the repo root:
+Open `firmware/Pong/Pong.ino` in the Arduino IDE. The other files in that folder open as tabs. There are no libraries to install. The upload steps and the serial check are in the [tutorial](docs/TUTORIAL.md).
+
+| Setting | Value |
+| --- | --- |
+| Board | Arduino Nano |
+| Processor | ATmega328P (Old Bootloader) |
+| If upload says `stk500_getsync` | Switch Processor to ATmega328P and try again |
+| Serial monitor | 115200 baud |
+
+The match has four steps. The start screen waits for a tap. Play moves the ball. Between points the ball sits still for a moment, then serves on its own. Pause freezes whichever of those two you were in.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Start
+    Start --> Play: tap, after 1 s when a winner is showing
+    Play --> Paused: tap
+    Between --> Paused: tap
+    Paused --> Play: tap, back to the rally
+    Paused --> Between: tap, back to the wait
+    Play --> Between: the ball gets past a paddle
+    Between --> Play: the wait ends
+    Play --> Start: score reaches 11
+```
+
+Buttons do not start or pause the game. They slide a paddle left and right.
+
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) is the software page: every file, one frame from start to finish, and how the picture is drawn without storing it.
+
+### On the computer
+
+The rules in `firmware/Pong/game.cpp` have no hardware code in them:
+
+```bash
+make test
+```
+
+`make firmware` builds the sketch with [arduino-cli](https://arduino.github.io/arduino-cli/) for the old-bootloader Nano. `make firmware-9486` builds the same sketch with the ILI9486 startup sequence.
+
+PlatformIO, from the repo root:
 
 ```bash
 pio run -e nano_old -t upload
@@ -67,46 +110,49 @@ pio device monitor -b 115200
 
 `nano_new` is the same sketch with the newer bootloader.
 
-## Play
+The ILI9488 build uses 10,734 bytes of flash (34% of 30,720) and 396 bytes of RAM (19% of 2,048). The Nano draws by sending the rectangles that changed. A stored copy of the whole screen does not fit in this chip.
 
-The glass hangs off the big breadboard, so seat the header fully and keep the SCK and MOSI wires short. Prop the panel so the header stays in the holes.
+### Layout
 
-Up on a mini breadboard is the button farther from you, down is the closer one. If a paddle moves the wrong way, swap that player's two pin numbers in `config.h`. If the whole picture is upside down, set `ROTATION` to `3`.
-
-| What you see | What to change in `config.h` |
-| --- | --- |
-| White backlight, blank picture | Confirm the divider wiring, then try `TFT_DRIVER` `9486` if the silkscreen says ILI9486 |
-| Backlight off | LED wire on the Nano's 3V3 pin |
-| Red and blue swapped | `TFT_USE_BGR` |
-| Colors look like a negative | `TFT_INVERT` |
-| Picture mirrored | `TFT_MIRROR` |
-| Speckles or a flickering image | Shorter SCK and MOSI wires, and `SPI_HZ` at `2000000` |
-
-## On the computer
-
-Ball physics, scoring, and the serve rules live in `firmware/Pong/game.cpp` and can be tested with no hardware:
-
-```bash
-make test
+```text
+firmware/Pong/       sketch: Pong.ino, config.h, game, render, display, input, touch
+test/                match tests that run on a computer
+tools/make_font.py   letter pictures; rerun it after an edit
+docs/TUTORIAL.md     build order
+docs/WIRING.md       bench card for every pin
+docs/ELECTRICAL.md   voltages and the shared SPI wires
+docs/HARDWARE.md     breadboards and one row
+docs/ARCHITECTURE.md the match, the files, and one frame
 ```
 
-`make firmware` builds the sketch with [arduino-cli](https://arduino.github.io/arduino-cli/) for the old-bootloader Nano. The binary is about 9.5 KB, around a third of the 30 KB the bootloader leaves free, and about 340 bytes of RAM out of 2048. The Nano draws by sending pixels as the ball and paddles move. A stored copy of the whole screen does not fit in this chip, and the sketch keeps the picture on the panel itself.
+`config.h` is the place to change the winning score, the paddle length, and how fast the ball moves.
 
-## Layout
+[CONTRIBUTING.md](CONTRIBUTING.md) lists which file to edit for each kind of change.
 
-```
-firmware/Pong/     sketch: Pong.ino plus the game, the panel, and the buttons
-test/              physics tests
-tools/make_font.py letter pictures; rerun it after an edit
-docs/WIRING.md     bench card
-docs/ARCHITECTURE.md  diagrams of the hardware, the frame loop, and the game rules
-```
+## Notes and limitations
 
-`config.h` is the place to change the winning score, the paddle size, and how fast the ball gets.
+- Pause is a tap on the glass. There is no separate pause button.
+- The ball does not speed up. That was left out on purpose.
+- There is no click unless a piezo is on D6 and `BUZZER_ENABLED` is `1`.
+- The Nano has 2048 bytes of RAM. The picture lives on the screen, and the sketch repairs the spots that moved.
+- There is no photo of a built board.
+- A module with no touch header cannot start or pause this sketch.
 
-## Collaboration
+## Later
 
-This project is meant to be built on with Aayan Rahman. The GitHub account name is `aayanrahman` (two a's). The similar-looking `AyanRahman` is a different person's account, so do not invite that one. After the repository is on GitHub, add that account under Settings → Collaborators so both of you can push. [CONTRIBUTING.md](CONTRIBUTING.md) lists which file owns which part of the game.
+- A photo of the three breadboards once they are built
+- A check of the touch pressure numbers on the actual module
+- Clicks, if the piezo is fitted
+
+## References
+
+- [docs/TUTORIAL.md](docs/TUTORIAL.md) for the build
+- [docs/WIRING.md](docs/WIRING.md) for every pin
+- [docs/ELECTRICAL.md](docs/ELECTRICAL.md) for the dividers and the shared wires
+- [docs/HARDWARE.md](docs/HARDWARE.md) for the breadboards
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the state machine and the drawing path
+- ILI9488 and ILI9486 bring-up, and the XPT2046 touch chip on the same header
+- The docs follow the split used in [robotictentacle](https://github.com/hronkrobotics/robotictentacle), and the mermaid maps used in [solareyes](https://github.com/hronkrobotics/solareyes)
 
 ## License
 

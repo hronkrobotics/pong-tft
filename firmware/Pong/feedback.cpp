@@ -5,17 +5,23 @@
 
 void feedback(const Game& game, GameEvent event) {
   if (event == GameEvent::Score || event == GameEvent::Win) {
-    Serial.print(F("left "));
-    Serial.print(game.scoreL);
-    Serial.print(F("  right "));
-    Serial.println(game.scoreR);
+    Serial.print(F("bottom "));
+    Serial.print(game.scoreBot);
+    Serial.print(F("  top "));
+    Serial.println(game.scoreTop);
   }
   if (event == GameEvent::Win) {
     if (game.winner == 1) {
-      Serial.println(F("left wins"));
+      Serial.println(F("bottom wins"));
     } else {
-      Serial.println(F("right wins"));
+      Serial.println(F("top wins"));
     }
+  }
+  if (event == GameEvent::Pause) {
+    Serial.println(F("paused"));
+  }
+  if (event == GameEvent::Resume) {
+    Serial.println(F("resumed"));
   }
 
 #if BUZZER_ENABLED
@@ -35,10 +41,14 @@ void feedback(const Game& game, GameEvent event) {
     case GameEvent::Serve:
       tone(PIN_BUZZER, 660, 24);
       break;
+    case GameEvent::Pause:
+      tone(PIN_BUZZER, 440, 30);
+      break;
+    case GameEvent::Resume:
+      tone(PIN_BUZZER, 660, 30);
+      break;
     case GameEvent::None:
       break;
   }
-#else
-  (void)game;
 #endif
 }

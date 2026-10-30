@@ -3,12 +3,12 @@
 #include "config.h"
 #include "input.h"
 
-static const uint8_t kPins[4] = {PIN_P1_UP, PIN_P1_DOWN, PIN_P2_UP, PIN_P2_DOWN};
+static const uint8_t kPins[4] = {PIN_BOT_LEFT, PIN_BOT_RIGHT, PIN_TOP_LEFT,
+                                 PIN_TOP_RIGHT};
 
 static uint8_t stableMask = 0;
 static uint8_t lastRaw = 0;
 static uint32_t changeAt = 0;
-static bool pendingEdge = false;
 
 static uint8_t readRaw() {
   uint8_t mask = 0;
@@ -27,7 +27,6 @@ void inputBegin() {
   lastRaw = readRaw();
   stableMask = lastRaw;
   changeAt = millis();
-  pendingEdge = false;
 }
 
 Buttons inputRead() {
@@ -37,37 +36,28 @@ Buttons inputRead() {
     lastRaw = raw;
     changeAt = now;
   } else if (raw != stableMask && (uint32_t)(now - changeAt) >= DEBOUNCE_MS) {
-    uint8_t pressed = (uint8_t)(raw & (uint8_t)~stableMask);
-    if (pressed) {
-      pendingEdge = true;
-    }
 #if DEBUG_BUTTONS
+    uint8_t pressed = (uint8_t)(raw & (uint8_t)~stableMask);
     if (pressed & 0x01) {
-      Serial.println(F("button: left up"));
+      Serial.println(F("button: bottom left"));
     }
     if (pressed & 0x02) {
-      Serial.println(F("button: left down"));
+      Serial.println(F("button: bottom right"));
     }
     if (pressed & 0x04) {
-      Serial.println(F("button: right up"));
+      Serial.println(F("button: top left"));
     }
     if (pressed & 0x08) {
-      Serial.println(F("button: right down"));
+      Serial.println(F("button: top right"));
     }
 #endif
     stableMask = raw;
   }
 
   Buttons buttons;
-  buttons.p1Up = stableMask & 0x01;
-  buttons.p1Down = stableMask & 0x02;
-  buttons.p2Up = stableMask & 0x04;
-  buttons.p2Down = stableMask & 0x08;
+  buttons.botLeft = stableMask & 0x01;
+  buttons.botRight = stableMask & 0x02;
+  buttons.topLeft = stableMask & 0x04;
+  buttons.topRight = stableMask & 0x08;
   return buttons;
-}
-
-bool inputConsumePress() {
-  bool edge = pendingEdge;
-  pendingEdge = false;
-  return edge;
 }

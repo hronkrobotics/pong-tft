@@ -6,6 +6,9 @@
 #include "display.h"
 #include "font.h"
 
+static_assert(ROTATION == 0 || ROTATION == 2, "use a portrait rotation");
+static_assert(SCREEN_W == 320 && SCREEN_H == 480, "3.5 inch portrait panel");
+
 static volatile uint8_t* csPort = 0;
 static volatile uint8_t* dcPort = 0;
 static uint8_t csBit = 0;
@@ -167,9 +170,11 @@ void displayBegin() {
   pinMode(PIN_CS, OUTPUT);
   pinMode(PIN_DC, OUTPUT);
   pinMode(PIN_RST, OUTPUT);
+  pinMode(PIN_T_CS, OUTPUT);
   digitalWrite(PIN_CS, HIGH);
   digitalWrite(PIN_DC, HIGH);
   digitalWrite(PIN_RST, HIGH);
+  digitalWrite(PIN_T_CS, HIGH);
 
   csPort = portOutputRegister(digitalPinToPort(PIN_CS));
   csBit = digitalPinToBitMask(PIN_CS);
@@ -186,7 +191,8 @@ void displayBegin() {
 
   initPanel();
 
-  uint8_t madctl = (ROTATION == 3) ? (uint8_t)(0x80 | 0x40 | 0x20) : (uint8_t)0x20;
+  // Portrait. Rotation 0 sets MX, rotation 2 sets MY. BGR is applied below.
+  uint8_t madctl = (ROTATION == 2) ? (uint8_t)0x80 : (uint8_t)0x40;
   if (TFT_MIRROR) {
     madctl ^= 0x40;
   }
