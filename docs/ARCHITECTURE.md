@@ -1,6 +1,6 @@
 # How this Pong game works
 
-This page is the software. It follows one match from a finger on the glass to a pixel on the screen. Voltages are in [ELECTRICAL.md](ELECTRICAL.md). The boards are in [HARDWARE.md](HARDWARE.md). The pin table is the [bench card](WIRING.md). The build order is the [tutorial](TUTORIAL.md). Which file to edit is in [CONTRIBUTING.md](../CONTRIBUTING.md).
+This page is the software. It follows one match from a finger on the glass to a pixel on the screen. Voltages are in [ELECTRICAL.md](ELECTRICAL.md). The boards are in [HARDWARE.md](HARDWARE.md). The pin table is the [bench card](WIRING.md). The build order is the [tutorial](TUTORIAL.md).
 
 The diagrams are maps. A box is a part or a file. An arrow means a wire, or "this step comes next." Each diagram has a short reading of the same idea in sentences, so you can skip the picture and still follow the program.
 
