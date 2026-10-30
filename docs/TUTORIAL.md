@@ -1,6 +1,13 @@
 # Build
 
-Wire power first, then the six dividers, then the buttons, then flash. The pin table is [WIRING.md](WIRING.md). Stop after the power step and check 5 V, 3.3 V, and ground with a meter if you have one, before the signal wires go on.
+Wire power first, then the six dividers, then the buttons, then flash. This page is the order. The pin table is [WIRING.md](WIRING.md). Stop after the power step and check 5 V, 3.3 V, and ground with a meter if you have one, before the signal wires go on.
+
+| The question | The page |
+| --- | --- |
+| Why a voltage, a divider, or a shared wire | [ELECTRICAL.md](ELECTRICAL.md) |
+| Where the boards sit, and what one breadboard row is | [HARDWARE.md](HARDWARE.md) |
+| Every pin on one page | [WIRING.md](WIRING.md) |
+| What the program does after the flash | [ARCHITECTURE.md](ARCHITECTURE.md) |
 
 ```mermaid
 flowchart TD
@@ -20,6 +27,8 @@ The two small breadboards are the players. Bottom player on the left, blue paddl
 
 If the big board has no free rows left for resistors, keep a spare strip for the six dividers. The resistors live on that strip. Jumper wires go out to the Nano and the screen.
 
+Where each board sits is in [HARDWARE.md](HARDWARE.md).
+
 ## 2. Power
 
 No resistors.
@@ -31,6 +40,8 @@ No resistors.
 | GND | GND |
 
 Run a ground wire from each small breadboard to this same GND.
+
+Why `VCC` is 5 V and `LED` is 3.3 V is in [ELECTRICAL.md](ELECTRICAL.md).
 
 ## 3. One divider
 
@@ -49,6 +60,8 @@ The 470 ohm is the resistor in the wire from the Nano. Yellow, violet, brown. Th
 If the parts in your hand are 220 ohm and 470 ohm, the 220 ohm goes in the wire and the 470 ohm goes to ground. Red, red, brown in the wire. Yellow, violet, brown down to ground. That joint is also about 3.4 V. The 470 ohm does not move to the Nano side to match a drawing that shows 470 ohm there with a 1k to ground.
 
 On a breadboard, the series resistor crosses the center slot of one row. The Nano wire is in the left half of that row. The screen wire and one leg of the ground resistor are in the right half. The other leg of the ground resistor is in the ground rail.
+
+Why the pair has to land near 3.4 V, and which other resistor values do that, is in [ELECTRICAL.md](ELECTRICAL.md). Which holes share a connection is in [HARDWARE.md](HARDWARE.md).
 
 ## 4. The four simple signals
 
@@ -89,11 +102,15 @@ D13 ----[ series ]----+---- SCK
 
 There are still only six dividers. SDI and T_DIN share one. SCK and T_CLK share one.
 
+Why those two wires are shared, and why that does not make the chips talk over each other, is in [ELECTRICAL.md](ELECTRICAL.md).
+
 ## 6. The straight wire, and the empty pins
 
 `T_DO` goes straight to D12. No resistors.
 
 Leave `T_IRQ` empty. Leave `SDO` empty. Do not tie `T_CS` to 3V3.
+
+Why `T_DO` is a straight wire, and why `SDO` stays empty, is in [ELECTRICAL.md](ELECTRICAL.md).
 
 ## 7. Buttons
 
@@ -105,6 +122,8 @@ Seat each button across the center gap of its small breadboard. One side of the 
 | Top, green | D4 | D5 |
 
 Left and right are as that player looks at their own paddle.
+
+How a button sits across the gap is in [HARDWARE.md](HARDWARE.md). The same four pins are on the [bench card](WIRING.md).
 
 ## 8. Flash
 
@@ -130,6 +149,8 @@ pio device monitor -b 115200
 
 `nano_new` is the same sketch with the newer bootloader.
 
+What the sketch does from power-on through one frame is in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## 9. Check
 
 The monitor prints the pin list, then `Ready. Tap the screen to start.`
@@ -146,3 +167,5 @@ Press each button. Look for `button: bottom left`, `bottom right`, `top left`, a
 | Picture upside down | `ROTATION` set to `2` |
 | A paddle moves the wrong way | Swap that player's two pin numbers in `config.h` |
 | Speckles or a flickering image | Shorter D11 and D13 wires, and `SPI_HZ` at `2000000` |
+
+The match itself, the winner screen, and which file owns each part are in [ARCHITECTURE.md](ARCHITECTURE.md).
