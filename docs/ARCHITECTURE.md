@@ -173,9 +173,20 @@ stateDiagram-v2
 
 Buttons never change the step. They only slide a paddle, and they do that during `Play` and during `PointPause`. On the title screen and while paused, the paddles stay where they are.
 
+A press has to hold still for 20 ms before it counts. If the reading changes again, the wait starts over. That is why a noisy contact becomes one slide instead of a flicker.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Steady: read the four pins
+    Steady --> Waiting: the reading changes
+    Waiting --> Waiting: it changes again
+    Waiting --> Steady: the same reading for 20 ms
+    Steady --> Steady: no change
+```
+
 The ball:
 
-- It starts in the middle of the gap between the paddles.
+- The ball's position is stored as pixels times 256, so one frame can move it by a fraction of a pixel. It starts in the middle of the gap between the paddles.
 - The opening serve, and every serve after a point, picks up or down from the clock. It is not always the same player who receives.
 - A small sideways speed is added so the serve is not a dead straight line.
 - The vertical speed stays at `SERVE_SPEED` for the whole match. Paddle hits do not speed the ball up.
@@ -211,5 +222,14 @@ The dashed line is horizontal, across the middle of the gap. The bottom paddle i
 ## What the Nano can hold
 
 The old-bootloader Nano has 30,720 bytes of flash and 2,048 bytes of RAM. The current ILI9488 build uses 10,734 bytes of flash (34%) and 396 bytes of RAM (19%). The ILI9486 build uses 10,616 bytes of flash and 386 bytes of RAM. There is no full-screen buffer: `display.cpp` sends each rectangle as 18-bit color over SPI and then throws it away.
+
+A stored picture of the glass would be 320 by 480 pixels, three bytes each, 460,800 bytes. The sketch never builds that. At 4 MHz the bus takes about 2 µs a byte, before the time spent deciding what to draw.
+
+| What changed | Bytes on the bus | Time on the bus |
+| --- | ---: | ---: |
+| Ball erased and drawn again, 14 by 14, twice | 1,176 | about 2 ms |
+| Paddle slid 4 px, two 12 by 4 strips | 288 | under 1 ms |
+| One score, two digits at scale 3 | 2,079 | about 4 ms |
+| The whole glass, once, at boot | 460,800 | about 0.9 s |
 
 The touch read borrows the same SPI wires. Display chip-select stays high, touch chip-select goes low, the chip is asked for a pressure sample, then touch chip-select goes high again before the next rectangle. The touch clock is 2 MHz. The screen clock is 4 MHz.
