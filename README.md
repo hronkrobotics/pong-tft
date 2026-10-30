@@ -127,9 +127,7 @@ docs/HARDWARE.md     breadboards and one row
 docs/ARCHITECTURE.md the match, the files, and one frame
 ```
 
-`config.h` is the place to change the winning score, the paddle length, and how fast the ball moves.
-
-[CONTRIBUTING.md](CONTRIBUTING.md) lists which file to edit for each kind of change.
+`config.h` is the place to change the winning score, the paddle length, and how fast the ball moves. The file list is on the [software page](docs/ARCHITECTURE.md).
 
 ## Notes and limitations
 
