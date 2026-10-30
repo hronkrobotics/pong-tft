@@ -1,243 +1,235 @@
-# How the game works
+# How this Pong game works
 
-This page follows one button press from the mini breadboard to pixels on the glass. Pins and the resistor dividers are on the [bench card](WIRING.md). Which file to edit is in [CONTRIBUTING.md](../CONTRIBUTING.md).
+This page is the software. It follows one match from a finger on the glass to a pixel on the screen. Voltages are in [ELECTRICAL.md](ELECTRICAL.md). The boards are in [HARDWARE.md](HARDWARE.md). The pin table is the [bench card](WIRING.md). The build order is the [tutorial](TUTORIAL.md). Which file to edit is in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-## The bench
+The diagrams are maps. A box is a part or a file. An arrow means a wire, or "this step comes next." Each diagram has a short reading of the same idea in sentences, so you can skip the picture and still follow the program.
 
-```mermaid
-flowchart LR
-    subgraph LeftBB["Left mini breadboard, cyan"]
-        L_UP(["Up button"])
-        L_DN(["Down button"])
-    end
-    subgraph RightBB["Right mini breadboard, amber"]
-        R_UP(["Up button"])
-        R_DN(["Down button"])
-    end
+## The whole table
 
-    subgraph Nano["Arduino Nano, ATmega328P"]
-        GPIO["D2 D3 D4 D5<br/>INPUT_PULLUP"]
-        SPI["Hardware SPI<br/>D13 SCK, D11 MOSI"]
-        CTRL["D10 CS, D9 DC, D8 RESET"]
-        BUZ["D6, optional"]
-        USB["USB serial<br/>115200 baud"]
-        P5["5V"]
-        P33["3V3"]
-    end
-
-    DIV["470 ohm series +<br/>1k to GND, x5<br/>5 V to about 3.4 V"]
-
-    subgraph TFT["3.5 in SPI TFT, 480 x 320"]
-        TLOGIC["CS DC RESET<br/>SDI SCK"]
-        TVCC["VCC"]
-        TLED["LED backlight"]
-        TOUCH["T_CS tied to 3V3,<br/>other touch pins open"]
-        MISO["SDO / MISO open"]
-    end
-
-    L_UP -->|"D2, press = LOW"| GPIO
-    L_DN -->|"D3"| GPIO
-    R_UP -->|"D4"| GPIO
-    R_DN -->|"D5"| GPIO
-    SPI --> DIV
-    CTRL --> DIV
-    DIV --> TLOGIC
-    P5 --> TVCC
-    P33 --> TLED
-    BUZ -.->|"tone()"| PIEZO(["Piezo to GND"])
-    USB -.->|"pin list, button lines,<br/>score lines"| PC["Serial monitor"]
-```
-
-All grounds are shared: the Nano, the TFT, and both mini breadboards.
-
-## Firmware files
-
-`game.cpp` holds every rule and touches no hardware. `make test` compiles it on a laptop with `test/test_game.cpp`.
+Three breadboards. The big one holds the Nano and the screen. Each small one holds one player's buttons. The sketch is the files in `firmware/Pong/`.
 
 ```mermaid
 flowchart TB
-    CFG["config.h<br/>pins, driver choice, field size,<br/>speeds, colors, timings"]
+    subgraph Players["Two small breadboards"]
+        direction LR
+        BOT["Bottom player, blue<br/>D2 left, D3 right"]
+        TOP["Top player, green<br/>D4 left, D5 right"]
+    end
 
-    subgraph Host["Builds on a laptop too"]
-        GAME["game.h / game.cpp<br/>Game, Mode, GameEvent<br/>gameInit, gameUpdate"]
+    subgraph Big["Big breadboard"]
+        direction TB
+        MCU["Arduino Nano clone<br/>ATmega328P"]
+        TFT["3.5 in SPI TFT<br/>320 x 480 portrait<br/>ILI9488, or ILI9486"]
+        TOUCH["XPT2046 touch chip<br/>on the same module"]
+        MCU -->|"CS D10, DC D9, RST D8<br/>MOSI D11, SCK D13"| TFT
+        MCU -->|"T_CS D7, T_DIN D11, T_CLK D13"| TOUCH
+        TOUCH -->|"T_DO to D12"| MCU
+    end
+
+    BOT --> MCU
+    TOP --> MCU
+
+    subgraph FW["Sketch on the Nano"]
+        direction LR
+        INO["Pong.ino<br/>setup and loop"]
+        GAME["game.cpp<br/>rules of the match"]
+        DRAW["render.cpp<br/>only the pixels that moved"]
+        PANEL["display.cpp<br/>SPI to the glass"]
+        INO --> GAME
+        INO --> DRAW
+        DRAW --> PANEL
+    end
+
+    MCU -.- FW
+    PANEL -.->|"rectangles, 18-bit color"| TFT
+```
+
+Start at the Nano in the middle. Buttons come in from the two players. The Nano sends the picture out on the SPI wires, and the touch chip sends a tap back on D12. The four files under the Nano are the program: the loop, the rules, the drawing, and the screen driver.
+
+Power is not on this map. The screen's `VCC` comes from 5 V, the backlight comes from the Nano's 3V3 pin, and every board shares ground. Signal wires that leave a Nano pin go through the resistor pair in [ELECTRICAL.md](ELECTRICAL.md), because those pins are 5 V and the screen wants 3.3 V.
+
+## The sketch, file by file
+
+`game.cpp` is only the rules. It does not know about pins, SPI, or the screen. That is why `make test` can play a whole match on a laptop. Anything that touches a pin lives in the other files.
+
+| File | What it owns |
+| --- | --- |
+| `Pong.ino` | Starts the board, then each frame reads buttons, reads a tap, updates the match, and draws |
+| `config.h` | Pin numbers, colors, paddle size, ball speed, points to win |
+| `game.cpp` | The four screens of a match, the ball, and the score |
+| `input.cpp` | Four buttons, with a short wait so a noisy press counts once |
+| `touch.cpp` | One tap when a finger lands. Holding the finger down does not count again |
+| `render.cpp` | Repaints the paddles, the ball, the scores, and the words |
+| `display.cpp` | Wakes the ILI9488 or ILI9486 and sends rectangles over SPI |
+| `feedback.cpp` | The serial score line, and a click if a piezo is fitted |
+| `font.cpp` | The letter shapes for the words on the glass |
+
+```mermaid
+flowchart LR
+    CFG["config.h<br/>pins, size, speed, score"]
+
+    subgraph Host["Builds on a laptop"]
+        GAME["game.h / game.cpp<br/>Mode, Game, gameUpdate"]
         TEST["test/test_game.cpp"]
     end
 
     subgraph Device["Needs the Nano"]
-        INO["Pong.ino<br/>setup, loop"]
-        INPUT["input.cpp<br/>debounce, press edges"]
-        FEED["feedback.cpp<br/>serial score, beeps"]
-        RENDER["render.cpp<br/>dirty-rectangle drawing"]
-        DISPLAY["display.cpp<br/>ILI9488 / ILI9486 over SPI"]
-        FONT["font.cpp<br/>5 x 7 glyphs in PROGMEM"]
+        INO["Pong.ino"]
+        IN["input.cpp<br/>four buttons"]
+        TAP["touch.cpp<br/>XPT2046 tap"]
+        DRAW["render.cpp"]
+        LCD["display.cpp<br/>ILI9488 or ILI9486"]
+        FONT["font.cpp"]
+        OUT["feedback.cpp<br/>serial, optional piezo"]
     end
 
-    TOOL["tools/make_font.py"] -->|"writes"| FONT
     CFG --> GAME
-    CFG --> INPUT
-    CFG --> FEED
-    CFG --> RENDER
-    CFG --> DISPLAY
+    CFG --> DRAW
+    CFG --> LCD
+    CFG --> TAP
     TEST --> GAME
-    INO --> INPUT
+    INO --> IN
+    INO --> TAP
     INO --> GAME
-    INO --> FEED
-    INO --> RENDER
-    INO --> DISPLAY
-    RENDER --> DISPLAY
-    DISPLAY --> FONT
-    INPUT -->|"Buttons"| GAME
-    RENDER -->|"reads Game"| GAME
-    FEED -->|"reads Game"| GAME
+    INO --> DRAW
+    INO --> OUT
+    DRAW --> LCD
+    DRAW --> FONT
+    OUT --> GAME
 ```
 
-## One pass of loop()
+The laptop box is the part you can change and check with no board on the desk. The Nano box is everything that needs the chip.
 
-`loop()` has no frame timer. Each pass measures the real time since the last one, and `gameUpdate()` caps it at `MAX_FRAME_MS` (40 ms), so a slow redraw can't throw the ball through a paddle.
+## From power-on to one frame
+
+Once, at boot:
+
+1. The serial port opens at 115200.
+2. The four button pins are set as inputs with pull-ups, so a press reads low and the buttons need no resistors of their own.
+3. Touch chip-select (D7) is driven high, so the touch chip stays quiet while the screen is set up.
+4. The screen wakes in portrait, 320 by 480.
+5. The match starts on the title screen. The ball sits in the middle and does not move.
+6. The glass is cleared and the title is drawn. The serial line says to tap.
+
+Every pass of `loop()` after that:
+
+1. Measure how long the last pass took. A stall longer than 40 ms is treated as 40 ms, so the ball cannot jump through a paddle.
+2. Read the four buttons.
+3. Read the touch chip. A tap is the moment a finger lands, and only if the last tap was at least 300 ms ago.
+4. Hand those to `gameUpdate`.
+5. Print a score, a pause, or a win.
+6. Repaint what moved.
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant Sketch as Pong.ino
-    participant Input as input.cpp
-    participant Game as game.cpp
-    participant Feed as feedback.cpp
-    participant Render as render.cpp
-    participant Panel as display.cpp and TFT
+    participant Buttons as input.cpp
+    participant Touch as touch.cpp
+    participant Rules as game.cpp
+    participant Draw as render.cpp
+    participant Panel as display.cpp
 
-    Note over Sketch: setup()
-    Sketch->>Input: inputBegin(), pull-ups on D2-D5
-    Sketch->>Panel: displayBegin(), reset, init, MADCTL, display on
-    Sketch->>Game: gameInit(), Mode Title
-    Sketch->>Render: renderBegin(), clear, borders, net, title text
+    Note over Sketch: setup, once
+    Sketch->>Touch: touchBegin, D7 held high
+    Sketch->>Panel: displayBegin, portrait
+    Sketch->>Rules: gameInit, title screen
+    Sketch->>Draw: renderBegin, clear the glass
 
-    Note over Sketch: loop()
-    Sketch->>Sketch: dt = millis() - lastMs
-    Sketch->>Input: inputRead()
-    Input-->>Sketch: Buttons, held state after 20 ms debounce
-    Sketch->>Input: inputConsumePress()
-    Input-->>Sketch: true once per new press
-    Sketch->>Game: gameUpdate(game, buttons, edge, now, dt)
-    Game-->>Sketch: GameEvent
-    Sketch->>Feed: feedback(game, event)
-    opt Score or Win
-        Feed->>Feed: Serial "left N  right M"
-    end
-    opt BUZZER_ENABLED
-        Feed->>Feed: tone() for the event
-    end
-    Sketch->>Render: render(game)
-    alt mode changed
-        Render->>Panel: erase old labels, repair net, draw new labels
-    end
-    Render->>Panel: changed score digits only
-    Render->>Panel: erase old ball, repair net under it
-    Render->>Panel: slide or repaint each paddle
-    Render->>Panel: paint the ball at its new spot
+    Note over Sketch: loop, every pass
+    Sketch->>Buttons: inputRead
+    Sketch->>Touch: touchConsumeTap
+    Note right of Touch: one tap when a finger lands
+    Sketch->>Rules: gameUpdate
+    Sketch->>Draw: render
+    Draw->>Panel: rectangles for what changed
 ```
 
-## Game modes
+## The match
+
+A player sees three things: the start screen, the game, and the word `PAUSED`. There is a fourth step inside the program, between points, when the ball sits still for 700 ms and then serves itself. A tap during that wait pauses it. The wait does not run out while the game is paused, and it does not get skipped.
+
+The names in the code are `Title`, `Play`, `PointPause`, and `Paused`.
+
+| What you see | Name in the code | What is moving |
+| --- | --- | --- |
+| `PONG` and `TAP TO START` | `Title` | Nothing. After a win, the winner's name is on this screen too |
+| The ball in flight | `Play` | Ball and both paddles |
+| Ball sitting still after a point | `PointPause` | Paddles only. After 700 ms the ball serves again |
+| `PAUSED` and `TAP TO RESUME` | `Paused` | Nothing. A tap returns to the step you left |
 
 ```mermaid
 stateDiagram-v2
-    direction LR
-    [*] --> Title: gameInit()
-    Title --> Play: any press<br/>scores 0-0, serve left
-    Play --> Play: Wall or Paddle event
-    Play --> PointPause: ball leaves the field<br/>Score event
-    PointPause --> Play: 700 ms later<br/>serve toward the player who missed
-    Play --> GameOver: a side reaches 11<br/>Win event
-    GameOver --> Play: any press after 1000 ms<br/>fresh match, serve left
-
-    Title: Title, PONG and PRESS ANY BUTTON
-    PointPause: PointPause, ball waits at center
-    GameOver: GameOver, LEFT WINS or RIGHT WINS
+    [*] --> Title: power on
+    Title --> Play: tap, serve up or down, after 1 s when a winner is showing
+    Play --> Paused: tap
+    PointPause --> Paused: tap
+    Paused --> Play: tap, the rally was running
+    Paused --> PointPause: tap, the wait was running
+    Play --> PointPause: the ball gets past a paddle
+    PointPause --> Play: 700 ms, a new serve
+    Play --> Title: a score reaches 11
 ```
 
-Paddles move in every mode, so players can line up during the title screen and the pauses.
+Buttons never change the step. They only slide a paddle, and they do that during `Play` and during `PointPause`. On the title screen and while paused, the paddles stay where they are.
 
-## Inside gameUpdate()
+A press has to hold still for 20 ms before it counts. If the reading changes again, the wait starts over. That is why a noisy contact becomes one slide instead of a flicker.
 
-All positions are fixed point: `ballX` and `ballY` are pixels times `FP_ONE` (256). Speeds are pixels per second.
+```mermaid
+stateDiagram-v2
+    [*] --> Steady: read the four pins
+    Steady --> Waiting: the reading changes
+    Waiting --> Waiting: it changes again
+    Waiting --> Steady: the same reading for 20 ms
+    Steady --> Steady: no change
+```
+
+The ball:
+
+- The ball's position is stored as pixels times 256, so one frame can move it by a fraction of a pixel. It starts in the middle of the gap between the paddles.
+- The opening serve, and every serve after a point, picks up or down from the clock. It is not always the same player who receives.
+- A small sideways speed is added so the serve is not a dead straight line.
+- The vertical speed stays at `SERVE_SPEED` for the whole match. Paddle hits do not speed the ball up.
+- Where the ball meets the paddle sets the sideways speed. The middle sends it straight. Toward an end, it angles off, up to `MAX_VX`.
+- The left and right edges of the glass bounce it back. The top and bottom are the goals. Past the top paddle, the bottom player scores. Past the bottom paddle, the top player scores.
+- At 11 the match returns to the title screen, the winner is named, and the score stays on screen. A tap in the first second is ignored. The next tap after that starts a new match at 0–0.
+
+## From the rules to the glass
+
+The Nano has 2048 bytes of RAM. A stored copy of a 320×480 picture does not fit, and this screen wants three bytes per pixel. The sketch keeps the picture on the glass and only repaints the rectangles that changed: a sliver of a paddle, the ball's old spot, the ball's new spot, a score the ball passed over, and the words when the screen changes.
+
+1. If the step changed, wipe the old words. If those words covered the ball, the ball is drawn again.
+2. Erase the ball where it was. Slide each paddle by erasing the trailing edge and drawing the leading edge. Draw the ball in its new spot. If any of that covered the dashed line, put the dashes back.
+3. If the ball covered a score, draw those two digits again so the number is whole.
+4. On the title screen and the pause screen, draw the words after the sprites so a ball underneath does not punch a hole in the letters.
 
 ```mermaid
 flowchart TD
-    START(["gameUpdate(game, buttons, edge, now, dt)"]) --> CLAMP["dt = min(dt, 40 ms)"]
-    CLAMP --> PAD["Move both paddles<br/>210 px/s, remainder kept in thousandths,<br/>both buttons held = stand still,<br/>clamped to the field"]
-    PAD --> HOLD{"GameOver and<br/>under 1000 ms?"}
-    HOLD -->|"yes"| DROP["Ignore the press"]
-    HOLD -->|"no"| MODE
-    DROP --> MODE{"Mode?"}
-    MODE -->|"Title or GameOver"| WAIT{"Press?"}
-    WAIT -->|"yes"| BEGIN["beginMatch(): 0-0,<br/>serve left"] --> SERVE(["return Serve"])
-    WAIT -->|"no"| NONE(["return None"])
-    MODE -->|"PointPause"| PAUSE{"700 ms since<br/>the point?"}
-    PAUSE -->|"yes"| LAUNCH["launch(): ball to center,<br/>vx = +/-170, vy from now / 3 mod 7"] --> SERVE
-    PAUSE -->|"no"| NONE
-    MODE -->|"Play"| MOVE["ball += v * dt"]
-    MOVE --> WALL{"Past the top<br/>or bottom?"}
-    WALL -->|"yes"| REFLECT["Clamp to the edge,<br/>flip vy, event = Wall"] --> LEFT
-    WALL -->|"no"| LEFT{"Moving left, at or inside the<br/>left paddle, and rows overlap?"}
-    LEFT -->|"yes"| BOUNCE_L["Snap to the paddle face,<br/>bounce(), event = Paddle"] --> RIGHT
-    LEFT -->|"no"| RIGHT{"Moving right, at or inside the<br/>right paddle, and rows overlap?"}
-    RIGHT -->|"yes"| BOUNCE_R["Snap to the paddle face,<br/>bounce(), event = Paddle"] --> OUT
-    RIGHT -->|"no"| OUT{"ballX < 0 or<br/>> 464?"}
-    OUT -->|"no"| EVENT(["return the event"])
-    OUT -->|"yes"| SCORE["scorePoint()<br/>the other side +1,<br/>serve toward the side that missed"]
-    SCORE --> WIN{"A side has 11?"}
-    WIN -->|"yes"| OVER["Mode GameOver,<br/>hold starts"] --> WINEV(["return Win"])
-    WIN -->|"no"| PP["Mode PointPause"] --> SCOREEV(["return Score"])
+    A["Buttons and one tap"] --> B["game.cpp moves the match"]
+    B --> C{"Did the step change?"}
+    C -->|yes| D["Wipe the old words"]
+    C -->|no| E["Erase the old ball, slide the paddles, draw the ball"]
+    D --> E
+    E --> F["Put the center dashes back if a sprite covered them"]
+    F --> G["Redraw a score if the ball covered the digits"]
+    G --> H{"Title or paused?"}
+    H -->|yes| I["Draw the words on top of the ball"]
+    H -->|no| J["Leave the table as it is"]
 ```
 
-`bounce()` adds `SPEED_BUMP` (16) to the horizontal speed, keeps it between 160 and 320 px/s, and adds `ENGLISH` (5) px/s of vertical speed for every pixel the ball's center sits away from the paddle's center, capped at 280 px/s.
+The dashed line is horizontal, across the middle of the gap. The bottom paddle is blue. The top paddle is green. The bottom player's score sits just above the bottom paddle. The top player's score sits just under the top paddle.
 
-## Drawing without a frame buffer
+## What the Nano can hold
 
-A full 480 x 320 picture at 3 bytes a pixel is 460,800 bytes. The Nano has 2,048 bytes of RAM. `render.cpp` remembers where the ball and paddles were and repaints only what changed.
+The old-bootloader Nano has 30,720 bytes of flash and 2,048 bytes of RAM. The current ILI9488 build uses 10,734 bytes of flash (34%) and 396 bytes of RAM (19%). The ILI9486 build uses 10,616 bytes of flash and 386 bytes of RAM. There is no full-screen buffer: `display.cpp` sends each rectangle as 18-bit color over SPI and then throws it away.
 
-```mermaid
-flowchart TD
-    R(["render(game)"]) --> MC{"Mode changed?"}
-    MC -->|"yes"| LBL["Erase the old labels, repair the net,<br/>draw the new mode's text"]
-    MC -->|"no"| SC
-    LBL --> SC{"Score changed?"}
-    SC -->|"yes"| DIG["Redraw that side's two digits,<br/>scale 3, with background"]
-    SC -->|"no"| BALL
-    DIG --> BALL{"Ball moved or hidden?"}
-    BALL -->|"yes"| ERASE["Fill old ball rect with the background,<br/>repair net dashes under it,<br/>note if it overlapped a paddle"]
-    BALL -->|"no"| PADS
-    ERASE --> PADS{"Paddle moved or<br/>punched by the eraser?"}
-    PADS -->|"moved less than its height"| SLIDE["Slide: clear the strip it left,<br/>paint the strip it entered"]
-    PADS -->|"punched or jumped"| FULL["Erase the old rect, repair the net,<br/>paint the whole paddle"]
-    PADS -->|"no"| PAINT
-    SLIDE --> PAINT["Paint the ball at its new spot"]
-    FULL --> PAINT
-```
+A stored picture of the glass would be 320 by 480 pixels, three bytes each, 460,800 bytes. The sketch never builds that. At 4 MHz the bus takes about 2 µs a byte, before the time spent deciding what to draw.
 
-Every fill goes through `displayFillRect()`: set the column and row window (`0x2A`, `0x2B`), send `0x2C`, then stream 3 bytes per pixel. Typical SPI traffic at 4 MHz (2 µs per byte, before loop overhead):
-
-| Drawing | Bytes | Time on the bus |
+| What changed | Bytes on the bus | Time on the bus |
 | --- | ---: | ---: |
-| Ball erase plus repaint, 16 x 16 twice | 1,536 | about 3 ms |
-| Paddle slide by 4 px, two 14 x 4 strips | 336 | under 1 ms |
-| One side's score, two digits at scale 3 | 2,079 | about 4 ms |
-| Whole screen at boot | 460,800 | about 0.9 s |
+| Ball erased and drawn again, 14 by 14, twice | 1,176 | about 2 ms |
+| Paddle slid 4 px, two 12 by 4 strips | 288 | under 1 ms |
+| One score, two digits at scale 3 | 2,079 | about 4 ms |
+| The whole glass, once, at boot | 460,800 | about 0.9 s |
 
-## Buttons
-
-```mermaid
-stateDiagram-v2
-    direction LR
-    [*] --> Stable: inputBegin() reads the pins
-    Stable --> Settling: raw reading changes
-    Settling --> Settling: changes again,<br/>timer restarts
-    Settling --> Stable: same for 20 ms<br/>update held mask
-    Stable --> Stable: no change
-    note right of Stable
-        When the held mask gains a button,
-        pendingEdge is set. inputConsumePress()
-        returns it once and clears it.
-    end note
-```
-
-With `DEBUG_BUTTONS` on, each new press also prints `button: left up` and the like, which is how the README's wiring check works.
+The touch read borrows the same SPI wires. Display chip-select stays high, touch chip-select goes low, the chip is asked for a pressure sample, then touch chip-select goes high again before the next rectangle. The touch clock is 2 MHz. The screen clock is 4 MHz.

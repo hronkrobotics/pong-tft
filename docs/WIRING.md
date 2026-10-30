@@ -2,66 +2,81 @@
 
 Pins live in `firmware/Pong/config.h`. If you move a wire, change the number there too.
 
-The picture is 480 by 320, landscape. The cyan paddle is the left player. The amber paddle is the right player.
+Why the dividers exist, and why D11 and D13 are shared, is in [ELECTRICAL.md](ELECTRICAL.md). How the breadboards sit is in [HARDWARE.md](HARDWARE.md). The build order is in [TUTORIAL.md](TUTORIAL.md).
 
-## Power and the display
+## Power
 
-| Nano | TFT pin | Notes |
+No resistors on these three.
+
+| Nano | Screen |
+| --- | --- |
+| 5V | VCC |
+| GND | GND |
+| 3V3 | LED |
+
+GND is also the ground of both button boards, and of the divider board if the pairs are not on the big breadboard.
+
+## Signals
+
+| Nano | Screen | How |
 | --- | --- | --- |
-| 5V | VCC | The module accepts 3.3 V or 5 V here. Use 5 V. |
-| GND | GND | Share this ground with both mini breadboards. |
-| 3V3 | LED | Backlight control. High keeps the backlight on. |
-| D10 | CS | Keep chip-select on D10. |
-| D9 | DC / RS | High means pixel data, low means a command. |
-| D8 | RESET | |
-| D11 | SDI / MOSI | Hardware SPI. This pin is fixed. |
-| D13 | SCK | Hardware SPI. This pin is fixed. |
-| (open) | SDO / MISO | The game only writes. Leave this pin empty. |
+| D10 | CS | one divider |
+| D8 | RESET | one divider |
+| D9 | DC / RS | one divider |
+| D11 | SDI / MOSI, and T_DIN | one divider, two wires from the joint |
+| D13 | SCK, and T_CLK | one divider, two wires from the joint |
+| D7 | T_CS | one divider |
+| D12 | T_DO | straight wire |
 
-Leave `T_CLK`, `T_DIN`, `T_DO`, and `T_IRQ` empty. If the header has `T_CS`, tie that pin to 3V3 so the touch chip stays idle.
+Leave `T_IRQ` empty. Leave `SDO` / `MISO` empty.
 
-The glass hangs off the big breadboard. Seat the header all the way, and keep the SCK and MOSI jumpers short.
+## One divider
 
-## 5 V pins into a 3.3 V panel
-
-The TFT's logic pins are 3.3 V. A Nano pin drives about 5 V. Do this for `CS`, `RESET`, `DC`, `MOSI`, and `SCK`:
+The 470 ohm resistor is in the wire. The 1k resistor goes from the joint to ground. That joint is about 3.4 V.
 
 ```
-Nano pin ----[ 470 ohm ]----+---- TFT pin
-                            |
-                         [ 1k ohm ]
-                            |
-                           GND
+Nano wire ----[ 470 ohm ]----+---- screen wire
+                             |
+                          [ 1k ohm ]
+                             |
+                        ground rail
 ```
 
-Five 470 ohm resistors and five 1k ohm resistors cover every signal. `LED` and `VCC` stay on the power pins above. `MISO` stays empty.
+A 220 ohm resistor in the wire and a 470 ohm resistor to ground is the same joint voltage. The smaller resistor stays on the Nano side. The larger one stays on the ground side.
 
-Some of these red boards have a solder jumper marked `J1` on the back. Bridging `J1` and powering `VCC` from 5 V lets the signal wires go straight across. The module maker says that path runs warm and ages the panel. Use it when the resistors are still in a drawer, and go back to the dividers for a board you want to keep.
+D11 and D13 each get a second screen wire from that same joint:
+
+```
+D11 ----[ series ]----+---- SDI
+                      |
+                      +---- T_DIN
+                      |
+                   [ to ground ]
+                      |
+                    ground
+
+D13 ----[ series ]----+---- SCK
+                      |
+                      +---- T_CLK
+                      |
+                   [ to ground ]
+                      |
+                    ground
+```
 
 ## Buttons
 
-Each mini breadboard holds two tactile buttons for one player. Seat each button so it straddles the center gap. The two legs on one side of the gap are already connected inside the switch, and the same is true of the other side. One side goes to the Nano pin. The other side goes to GND.
+One side of the button goes to the Nano pin. The other side goes to ground. No resistors. The sketch turns on the Nano's internal pull-ups, so a press reads low.
 
-The sketch enables the Nano's internal pull-ups. A press reads low. The buttons themselves need no resistors.
+| Player | Action | Nano |
+| --- | --- | --- |
+| Bottom (blue) | Left | D2 |
+| Bottom (blue) | Right | D3 |
+| Top (green) | Left | D4 |
+| Top (green) | Right | D5 |
 
-| Player | Action | Nano | Where it sits |
-| --- | --- | --- | --- |
-| Left (cyan) | Up | D2 | Left mini breadboard, farther from you |
-| Left (cyan) | Down | D3 | Left mini breadboard, closer to you |
-| Right (amber) | Up | D4 | Right mini breadboard, farther from you |
-| Right (amber) | Down | D5 | Right mini breadboard, closer to you |
-
-Run one ground wire from each mini breadboard back to the GND rail on the big breadboard.
+Left and right are as that player looks at their own paddle. If a paddle slides the wrong way, swap that player's two pin numbers in `config.h`.
 
 ## Optional click
 
-A piezo from D6 to GND clicks on paddle hits, walls, and points. In `config.h`, set `BUZZER_ENABLED` to `1`.
-
-## Upload
-
-1. Board: Arduino Nano.
-2. Processor: ATmega328P (Old Bootloader). This is the one CH340 clones use.
-3. If `avrdude` reports `stk500_getsync`, switch Processor to ATmega328P and upload again.
-4. Use the normal Upload button. A data USB cable has to be in the Nano. Charge-only cables never show a port.
-5. Open the serial monitor at 115200. It should print `Pong TFT`, then `Ready`.
-6. Press each button. The monitor prints `button: left up` and the matching line for the other three.
+A piezo from D6 to GND. In `config.h`, set `BUZZER_ENABLED` to `1`.
