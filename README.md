@@ -1,12 +1,14 @@
 # Pong on a 3.5 inch SPI TFT
 
+![The screen shows PONG and TAP TO START. Blue buttons are on a blue breadboard, green buttons on a green breadboard, and yellow wires run back to the Nano and the resistor board.](docs/bench.jpg)
+
 Two paddles, one ball, first to 11. The sketch runs on an Arduino Nano clone and a 3.5 inch SPI touchscreen. The glass is portrait: one paddle along the bottom, one along the top. Each player has two buttons on a small breadboard.
 
 The blue paddle slides along the bottom. The green paddle slides along the top. The ball starts in the middle and leaves upward or downward. Its speed stays the same for the whole match. Tap the glass to start, tap again to pause, and tap once more to resume. At 11 the start screen comes back and names the winner. A tap in that first second does not start the next match.
 
 ## Project status
 
-The rules of the match are checked on a computer with `make test`: serves, bounces, a pause, and a win. This repo does not include a photo of a finished build.
+The rules of the match are checked on a computer with `make test`: serves, bounces, a pause, and a win. The photo above is the bench: the title screen, the two button boards, and the resistor board.
 
 ## System overview
 
@@ -42,12 +44,12 @@ The build is split the same way the wires, the boards, and the program are split
 | Large breadboard | Holds the Nano and the screen | 1 |
 | Mini breadboard | One player each. A third strip if the dividers do not fit on the big board | 2 |
 | Tactile buttons | Two per mini breadboard | 4 |
-| 470 ohm resistors | In series on the six signal wires | 6 |
-| 1 k ohm resistors | From those joints down to ground | 6 |
+| 220 ohm resistors | In the wire from the Nano, one for each of the six signals | 6 |
+| 470 ohm resistors | From those joints down to ground | 6 |
 | Jumper wires | | |
 | USB cable | Has to carry data, not charge only | 1 |
 
-Six 220 ohm resistors and six 470 ohm resistors are the other pair that lands at the same voltage. The smaller one goes in the wire from the Nano. The larger one goes to ground. Both sets are drawn in the [tutorial](docs/TUTORIAL.md).
+A 470 ohm resistor in the wire and a 1 k ohm resistor to ground is the other pair that lands at the same voltage. The smaller resistor stays on the Nano side. The larger one goes to ground. Both pairs are drawn in the [tutorial](docs/TUTORIAL.md).
 
 A piezo from D6 to ground is optional. Set `BUZZER_ENABLED` to `1` in `firmware/Pong/config.h` when it is fitted. A CH340 driver on the computer is needed if the Nano's port never appears.
 
@@ -135,12 +137,10 @@ docs/ARCHITECTURE.md the match, the files, and one frame
 - The ball does not speed up. That was left out on purpose.
 - There is no click unless a piezo is on D6 and `BUZZER_ENABLED` is `1`.
 - The Nano has 2048 bytes of RAM. The picture lives on the screen, and the sketch repairs the spots that moved.
-- There is no photo of a built board.
 - A module with no touch header cannot start or pause this sketch.
 
 ## Later
 
-- A photo of the three breadboards once they are built
 - A check of the touch pressure numbers on the actual module
 - Clicks, if the piezo is fitted
 
